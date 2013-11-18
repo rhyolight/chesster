@@ -77,6 +77,35 @@
         }
     }
 
+    function enableDragDrop(board) {
+        var chessImages = board.find('td img'),
+            cells = board.find('td');
+        chessImages.draggable();
+        cells.droppable({
+            activate: function(evt, ui) {
+                // chessImages.droppable('disable');
+            },
+            drop: function(evt, ui) {
+                pieceImage = $(ui.draggable);
+                cell = $(this);
+                previousCell = pieceImage.parent();
+                if (cell.attr('id') != previousCell.attr('id')) {
+                    unHighlightAll(board);
+                    previousCell.empty();
+                    cell.empty();
+                    cell.append(pieceImage);
+                    pieceImage.attr('style', 'position: relative')
+                          .addClass('ui-draggable')
+                          .mouseover(this.chessImageOver)
+                          .mouseout(this.dehighlightAll)
+                          .draggable();
+
+                }
+                // chessImages.droppable('enable');
+            }
+        });
+    }
+
     function buildChessboard(id) {
         var boardContainer = $('#' + id);
         var board = $('<table>');
@@ -237,6 +266,7 @@
         } else {
             setupStandardBoard(board);
         }
+        enableDragDrop(board);
         this.board = board;
     }
 
