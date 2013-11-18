@@ -9,3 +9,4 @@ My eight-year-old son and I made this together.
         new Chesster("chessboard");
     </script>
 
+## Work in Progress
