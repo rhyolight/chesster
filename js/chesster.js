@@ -40,19 +40,32 @@
         });
     }
 
-    function highlightCells(board, cells) {
-        var cellIds = cells.map(function(cellId) {
+    function addClassToCells(className, board, cellIds) {
+        var cellIds = cellIds.map(function(cellId) {
                 return '#' + cellId.toLowerCase();
             }).join(', ');
-        board.find(cellIds).addClass('highlight');
+        board.find(cellIds).addClass(className);
+    }
+
+    function highlightCells(board, cells) {
+        addClassToCells('highlight', board, cells);
+    }
+
+    function attackCells(board, cells) {
+        addClassToCells('attacked', board, cells);
     }
 
     function unHighlightAll(board) {
-        board.find('td').removeClass('highlight');
+        board.find('td').removeClass('highlight attacked');
     }
 
     function piecePathToDescription(path) {
         return path.split('/').pop().split('\.').shift().split('_');
+    }
+
+    function oppositeColor(color) {
+        if (color == 'white') return 'black';
+        return 'white';
     }
 
     function highlightMoves(event, board) {
@@ -61,7 +74,7 @@
         var cell = $(event.target);
         var cellId = cell.attr('id');
         var pieceImage = cell.find('img');
-        var pieceDescription, color, piece, cellsToHighlight;
+        var pieceDescription, color, piece, cellsToHighlight, attackedCells;
         if (cell.prop('tagName') == 'IMG') {
             pieceImage = cell;
             cellId = cell.parent().attr('id');
@@ -72,6 +85,8 @@
             piece = pieceDescription[1];
             cellsToHighlight = moves[piece](cellId, color);
             highlightCells(board, cellsToHighlight);
+            attackedCells = getCellsOccupiedBy(oppositeColor(color), board, cellsToHighlight);
+            attackCells(board, attackedCells);
         } else {
             unHighlightAll(board);
         }
@@ -82,9 +97,6 @@
             cells = board.find('td');
         chessImages.draggable();
         cells.droppable({
-            activate: function(evt, ui) {
-                // chessImages.droppable('disable');
-            },
             drop: function(evt, ui) {
                 pieceImage = $(ui.draggable);
                 cell = $(this);
@@ -101,7 +113,6 @@
                           .draggable();
 
                 }
-                // chessImages.droppable('enable');
             }
         });
     }
@@ -160,6 +171,17 @@
             return undefined;
         }
         return columns[targetCol] + targetRow;
+    }
+
+    function getCellsOccupiedBy(color, board, cells) {
+        var output = [];
+        cells.forEach(function(cellId) {
+            var cell = board.find('#' + cellId);
+            if (cell.find('img').length && cell.find('img').attr('src').indexOf(color) > 0) {
+                output.push(cellId);
+            }
+        });
+        return output;
     }
 
     function calculateRookMoves(cell) {
