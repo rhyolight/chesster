@@ -92,7 +92,7 @@
         });
     }
 
-    function getClosestCellBySlope(originCell, cells) {
+    function getClosesCellByVector(originCell, cells) {
         var origin = cellToCoords(originCell),
             cellCoords = cells.map(function(c) {
                 var coord = cellToCoords(c);
@@ -122,14 +122,14 @@
         var freeCells = moves.slice(0),
             origin = cellToCoords(cellId),
             occupied = getOccupiedCells(board, moves),
-            closestCellsBySlope = getClosestCellBySlope(cellId, occupied);
+            closestByVector = getClosesCellByVector(cellId, occupied);
         // Remove all cells that are farther away than the closest occupied cell
         // along the same vector
         moves.forEach(function(targetCell) {
             var occupiedCoords = cellToCoords(targetCell),
                 vector = getVector(origin, occupiedCoords);
-            if (closestCellsBySlope[vector] == undefined) return;
-            if (distanceBetween(origin, occupiedCoords) > closestCellsBySlope[vector].distance) {
+            if (closestByVector[vector] == undefined) return;
+            if (distanceBetween(origin, occupiedCoords) > closestByVector[vector].distance) {
                 freeCells.splice(freeCells.indexOf(targetCell), 1);
             }
         });
