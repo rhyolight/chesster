@@ -68,13 +68,94 @@
         return 'white';
     }
 
+    function getOccupiedCells(board, cells) {
+        var output = [];
+        cells.forEach(function(cellId) {
+            var cell = board.find('#' + cellId);
+            if (cell.find('img').length) {
+                output.push(cellId);
+            }
+        });
+        return output;
+    }
+
+    function getCellsOccupiedBy(color, board, cells) {
+        var occupied = getOccupiedCells(board, cells);
+        return occupied.filter(function(cellId) {
+            var cell = board.find('#' + cellId);
+            return (cell.find('img').length 
+                && cell.find('img').attr('src').indexOf(color) > 0);
+        });
+    }
+
+    function getClosestCellBySlope(originCell, cells) {
+        var origin = cellToCoords(originCell),
+            cellCoords = cells.map(function(c) {
+                var coord = cellToCoords(c);
+                coord.cellId = c;
+                return coord;
+            }),
+            output = {};
+        cellCoords.forEach(function(targetCoord) {
+            var vector = getVector(origin, targetCoord),
+                distance = distanceBetween(origin, targetCoord),
+                slopePayload = {
+                    cellId: targetCoord.cellId,
+                    distance: distance
+                };
+            if (! output[vector]) {
+                output[vector] = slopePayload;
+            } else {
+                if (distance < output[vector].distance) {
+                    output[vector] = slopePayload;
+                }
+            }
+        });
+        return output;
+    }
+
+    function stripObscuredCells(board, moves, cellId) {
+        var freeCells = moves.slice(0),
+            origin = cellToCoords(cellId),
+            occupied = getOccupiedCells(board, moves),
+            closestCellsBySlope = getClosestCellBySlope(cellId, occupied);
+        // Remove all cells that are farther away than the closest occupied cell
+        // along the same vector
+        moves.forEach(function(targetCell) {
+            var occupiedCoords = cellToCoords(targetCell),
+                vector = getVector(origin, occupiedCoords);
+            if (closestCellsBySlope[vector] == undefined) return;
+            if (distanceBetween(origin, occupiedCoords) > closestCellsBySlope[vector].distance) {
+                freeCells.splice(freeCells.indexOf(targetCell), 1);
+            }
+        });
+        return freeCells;
+    }
+
+    function cellToCoords(cell) {
+        var x = columns.indexOf(cell.substr(0,1).toLowerCase()) + 1,
+            y = parseInt(cell.substr(1,1));
+        return {x: x, y: y};
+    }
+
+    function distanceBetween(a, b) {
+        return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+    }
+
+    function getVector(a, b) {
+        return Math.atan2((b.y - a.y), (b.x - a.x)) * 180 / Math.PI;
+        // return Math.atan2(b.y,b.x) - Math.atan2(a.y,a.x)
+        // return 'x' + (b.x - a.x) + 'y' + (b.y - a.y);
+    }
+
     function highlightMoves(event, board) {
         event.preventDefault();
         event.stopPropagation();
         var cell = $(event.target);
         var cellId = cell.attr('id');
         var pieceImage = cell.find('img');
-        var pieceDescription, color, piece, cellsToHighlight, attackedCells;
+        var pieceDescription, color, piece, 
+            possibleCellMovements, cellsToHighlight, attackedCells;
         if (cell.prop('tagName') == 'IMG') {
             pieceImage = cell;
             cellId = cell.parent().attr('id');
@@ -83,7 +164,15 @@
             pieceDescription = piecePathToDescription(pieceImage.attr('src'));
             color = pieceDescription[0];
             piece = pieceDescription[1];
-            cellsToHighlight = moves[piece](cellId, color);
+            possibleCellMovements = moves[piece](cellId, color);
+            // Remove origin cell
+            if (possibleCellMovements.indexOf(cellId) > 0) {
+                possibleCellMovements.splice(possibleCellMovements.indexOf(cellId), 1);
+            }
+            cellsToHighlight = stripObscuredCells(board, possibleCellMovements, cellId);
+            getCellsOccupiedBy(color, board, cellsToHighlight).forEach(function(toStrip) {
+                cellsToHighlight.splice(cellsToHighlight.indexOf(toStrip), 1);
+            });
             highlightCells(board, cellsToHighlight);
             attackedCells = getCellsOccupiedBy(oppositeColor(color), board, cellsToHighlight);
             attackCells(board, attackedCells);
@@ -111,7 +200,6 @@
                           .mouseover(this.chessImageOver)
                           .mouseout(this.dehighlightAll)
                           .draggable();
-
                 }
             }
         });
@@ -171,17 +259,6 @@
             return undefined;
         }
         return columns[targetCol] + targetRow;
-    }
-
-    function getCellsOccupiedBy(color, board, cells) {
-        var output = [];
-        cells.forEach(function(cellId) {
-            var cell = board.find('#' + cellId);
-            if (cell.find('img').length && cell.find('img').attr('src').indexOf(color) > 0) {
-                output.push(cellId);
-            }
-        });
-        return output;
     }
 
     function calculateRookMoves(cell) {
