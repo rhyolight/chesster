@@ -3,6 +3,132 @@
     var columns = ['a','b','c','d','e','f','g','h'];
     var rows = [1,2,3,4,5,6,7,8];
 
+    /*** MOVES ***/
+
+    function calculateRookMoves(cell) {
+        var col = cell.substr(0,1).toLowerCase(),
+            row = cell.substr(1,1),
+            output = [];
+        columns.forEach(function(colId) {
+            rows.forEach(function(rowId) {
+                if (colId == col || rowId == row) {
+                    output.push(colId + rowId);
+                }
+            });
+        });
+        if (output.indexOf(col + row)) {
+            output.splice(output.indexOf(col + row), 1);
+        }
+        return output;
+    }
+
+    function calculateKnightMoves(cell) {
+        var output = [];
+        output.push(getRelativeCell(cell, 2,  1))
+        output.push(getRelativeCell(cell, 2,  -1))
+        output.push(getRelativeCell(cell, 1,  2))
+        output.push(getRelativeCell(cell, -1, 2))
+        output.push(getRelativeCell(cell, -2, 1))
+        output.push(getRelativeCell(cell, -2, -1))
+        output.push(getRelativeCell(cell, 1,  -2))
+        output.push(getRelativeCell(cell, -1, -2))
+        output = output.filter(function(item) {
+            return item != undefined;
+        });
+        return output;
+    }
+
+    function calculateKingMoves(cell) {
+        var col = cell.substr(0,1).toLowerCase(),
+            row = cell.substr(1,1),
+            output = [];
+        var x, y;
+        for (x = -1; x <= 1; x++) {
+            for (y = -1; y <= 1; y++) {
+                output.push(getRelativeCell(cell, x, y));
+            }
+        }
+        output = output.filter(function(item) {
+            return item != undefined;
+        });
+        if (output.indexOf(col + row)) {
+            output.splice(output.indexOf(col + row), 1);
+        }
+        return output;
+    }
+
+    function calculateBishopMoves(cell) {
+        var originCol = cell.substr(0,1).toLowerCase(),
+            originRow = cell.substr(1,1),
+            output = [];
+        rows.forEach(function(row) {
+            columns.forEach(function(col) {
+                if (Math.abs(columns.indexOf(col) - columns.indexOf(originCol)) == Math.abs(row - originRow)) {
+                    output.push(col + row);
+                }
+            });
+        });
+        return output;
+    }
+
+    function calculatePawnMoves(cell, color, board) {
+        var col = cell.substr(0,1).toLowerCase(),
+            row = cell.substr(1,1),
+            operation, targetCell,
+            output = [];
+        operation = function(a, b) { return a + b; };
+        if (color == 'black') {
+            operation = function(a, b) { return a - b; };
+        }
+        // Head on moves first
+        targetCell = col + (operation(parseInt(row), 1));
+        if (! cellIsOccupied(targetCell, board)) {
+            output.push(targetCell);
+            if ((color == 'white' && row == '2') || (color == 'black' && row == '7')) {
+                targetCell = col + (operation(parseInt(row), 2));
+                if (! cellIsOccupied(targetCell, board)) {
+                    output.push(targetCell);
+                }
+            }
+        }
+        // Diagonal attacks
+        [-1, 1].forEach(function(modifier) {
+            targetCell = columns[columns.indexOf(col) + modifier] + (operation(parseInt(row), 1));
+            if (cellIsOccupiedBy(oppositeColor(color), targetCell, board)) {
+                output.push(targetCell);
+            }
+        });
+        return output;
+    }
+
+    function calculateQueenMoves(cell) {
+        return calculateRookMoves(cell).concat(calculateBishopMoves(cell));
+    }
+
+    var moves = {
+        'rook': calculateRookMoves,
+        'knight': calculateKnightMoves,
+        'bishop': calculateBishopMoves,
+        'king': calculateKingMoves,
+        'pawn': calculatePawnMoves,
+        'queen': calculateQueenMoves
+    };
+
+    /*** SETUP ***/
+
+    function placePiece(board, color, piece, position) {
+        var targetCell = board.find('#' + position.toLowerCase());
+        var imagePath = 'images/pieces/' + color + '_' + piece + '.png';
+        targetCell.append('<img src="' + imagePath + '">');
+    }
+
+    function fillRow(board, color, piece, row) {
+        var rowCounter;
+        for (rowCounter = 0; rowCounter < 8; rowCounter++) {
+            placePiece(board, color, piece, columns[rowCounter].toLowerCase() + row)
+        }
+    }
+
     function setupChessNobles(board, color, row) {
         placePiece(board, color, 'rook', 'A' + row);
         placePiece(board, color, 'knight', 'B' + row);
@@ -14,17 +140,9 @@
         placePiece(board, color, 'rook', 'H' + row);
     }
 
-    function fillRow(board, color, piece, row) {
-        var rowCounter;
-        for (rowCounter = 0; rowCounter < 8; rowCounter++) {
-            placePiece(board, color, piece, columns[rowCounter].toLowerCase() + row)
-        }
-    }
-
     function setupStandardBoard(board) {
         setupChessNobles(board, 'black', 8);
         fillRow(board, 'black', 'pawn', 7);
-
         setupChessNobles(board, 'white', 1);
         fillRow(board, 'white', 'pawn', 2)
     }
@@ -72,6 +190,17 @@
         return 'white';
     }
 
+    function cellIsOccupied(cellId, board) {
+        var cell = board.find('#' + cellId);
+        return cell.find('img').length > 0;
+    }
+
+    function cellIsOccupiedBy(color, cellId, board) {
+        var cell = board.find('#' + cellId);
+        return (cell.find('img').length 
+            && cell.find('img').attr('src').indexOf(color) > 0);
+    }
+
     function getOccupiedCells(board, cells) {
         var output = [];
         cells.forEach(function(cellId) {
@@ -86,9 +215,7 @@
     function getCellsOccupiedBy(color, board, cells) {
         var occupied = getOccupiedCells(board, cells);
         return occupied.filter(function(cellId) {
-            var cell = board.find('#' + cellId);
-            return (cell.find('img').length 
-                && cell.find('img').attr('src').indexOf(color) > 0);
+            return cellIsOccupiedBy(color, cellId, board);
         });
     }
 
@@ -166,7 +293,7 @@
             pieceDescription = piecePathToDescription(pieceImage.attr('src'));
             color = pieceDescription[0];
             piece = pieceDescription[1];
-            possibleCellMovements = moves[piece](cellId, color);
+            possibleCellMovements = moves[piece](cellId, color, board);
             // Remove origin cell
             if (possibleCellMovements.indexOf(cellId) > 0) {
                 possibleCellMovements.splice(possibleCellMovements.indexOf(cellId), 1);
@@ -245,12 +372,6 @@
         return board;
     }
 
-    function placePiece(board, color, piece, position) {
-        var targetCell = board.find('#' + position.toLowerCase());
-        var imagePath = 'images/pieces/' + color + '_' + piece + '.png';
-        targetCell.append('<img src="' + imagePath + '">');
-    }
-
     function getRelativeCell(cellId, plusCol, plusRow) {
         var col = cellId.substr(0,1).toLowerCase(),
             row = cellId.substr(1,1),
@@ -263,101 +384,6 @@
         }
         return columns[targetCol] + targetRow;
     }
-
-    function calculateRookMoves(cell) {
-        var col = cell.substr(0,1).toLowerCase(),
-            row = cell.substr(1,1),
-            output = [];
-        columns.forEach(function(colId) {
-            rows.forEach(function(rowId) {
-                if (colId == col || rowId == row) {
-                    output.push(colId + rowId);
-                }
-            });
-        });
-        if (output.indexOf(col + row)) {
-            output.splice(output.indexOf(col + row), 1);
-        }
-        return output;
-    }
-
-    function calculateKnightMoves(cell) {
-        var output = [];
-        output.push(getRelativeCell(cell, 2,  1))
-        output.push(getRelativeCell(cell, 2,  -1))
-        output.push(getRelativeCell(cell, 1,  2))
-        output.push(getRelativeCell(cell, -1, 2))
-        output.push(getRelativeCell(cell, -2, 1))
-        output.push(getRelativeCell(cell, -2, -1))
-        output.push(getRelativeCell(cell, 1,  -2))
-        output.push(getRelativeCell(cell, -1, -2))
-        output = output.filter(function(item) {
-            return item != undefined;
-        });
-        return output;
-    }
-
-    function calculateKingMoves(cell) {
-        var col = cell.substr(0,1).toLowerCase(),
-            row = cell.substr(1,1),
-            output = [];
-        var x, y;
-        for (x = -1; x <= 1; x++) {
-            for (y = -1; y <= 1; y++) {
-                output.push(getRelativeCell(cell, x, y));
-            }
-        }
-        output = output.filter(function(item) {
-            return item != undefined;
-        });
-        if (output.indexOf(col + row)) {
-            output.splice(output.indexOf(col + row), 1);
-        }
-        return output;
-    }
-
-    function calculateBishopMoves(cell) {
-        var originCol = cell.substr(0,1).toLowerCase(),
-            originRow = cell.substr(1,1),
-            output = [];
-        rows.forEach(function(row) {
-            columns.forEach(function(col) {
-                if (Math.abs(columns.indexOf(col) - columns.indexOf(originCol)) == Math.abs(row - originRow)) {
-                    output.push(col + row);
-                }
-            });
-        });
-        return output;
-    }
-
-    function calculatePawnMoves(cell, color) {
-        var col = cell.substr(0,1).toLowerCase(),
-            row = cell.substr(1,1),
-            operation,
-            output = [];
-        operation = function(a, b) { return a + b; };
-        if (color == 'black') {
-            operation = function(a, b) { return a - b; };
-        }
-        output.push(col + (operation(parseInt(row), 1)));
-        if ((color == 'white' && row == '2') || (color == 'black' && row == '7')) {
-            output.push(col + (operation(parseInt(row), 2)));
-        }
-        return output;
-    }
-
-    function calculateQueenMoves(cell) {
-        return calculateRookMoves(cell).concat(calculateBishopMoves(cell));
-    }
-
-    var moves = {
-        'rook': calculateRookMoves,
-        'knight': calculateKnightMoves,
-        'bishop': calculateBishopMoves,
-        'king': calculateKingMoves,
-        'pawn': calculatePawnMoves,
-        'queen': calculateQueenMoves
-    };
 
     function Chesster(id, options) {
         var opts = $.extend({}, {
