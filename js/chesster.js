@@ -51,12 +51,16 @@
         addClassToCells('highlight', board, cells);
     }
 
+    function highlightOrigin(board, cell) {
+        addClassToCells('origin', board, [cell]);
+    }
+
     function attackCells(board, cells) {
         addClassToCells('attacked', board, cells);
     }
 
     function unHighlightAll(board) {
-        board.find('td').removeClass('highlight attacked');
+        board.find('td').removeClass('highlight attacked origin');
     }
 
     function piecePathToDescription(path) {
@@ -144,8 +148,6 @@
 
     function getVector(a, b) {
         return Math.atan2((b.y - a.y), (b.x - a.x)) * 180 / Math.PI;
-        // return Math.atan2(b.y,b.x) - Math.atan2(a.y,a.x)
-        // return 'x' + (b.x - a.x) + 'y' + (b.y - a.y);
     }
 
     function highlightMoves(event, board) {
@@ -174,6 +176,7 @@
                 cellsToHighlight.splice(cellsToHighlight.indexOf(toStrip), 1);
             });
             highlightCells(board, cellsToHighlight);
+            highlightOrigin(board, cellId);
             attackedCells = getCellsOccupiedBy(oppositeColor(color), board, cellsToHighlight);
             attackCells(board, attackedCells);
         } else {
