@@ -1,0 +1,28 @@
+
+table.chesster {
+    border-spacing: 0;
+}
+table.chesster tr td {
+    border: solid black 2px;
+    width: 80px;
+    height: 80px;
+    text-align: center;
+}
+table.chesster tr td.even {
+    background-color: #DA6D00;
+}
+table.chesster tr td.odd {
+    background-color: #A15100;
+}
+table.chesster .row-label {
+    float:left;
+}
+table.chesster td.origin {
+    opacity: 0.5;
+}
+table.chesster td.highlight {
+    border: solid 2px yellow;
+}
+table.chesster td.attacked {
+    border-color: red;
+}

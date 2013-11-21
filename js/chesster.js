@@ -337,7 +337,7 @@
 
     function buildChessboard(id) {
         var boardContainer = $('#' + id);
-        var board = $('<table>');
+        var board = $('<table class="chesster">');
         var rows = 8;
         var cols = 8;
 
