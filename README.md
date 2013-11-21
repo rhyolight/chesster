@@ -2,11 +2,6 @@ My eight-year-old son and I made this together.
 
 ## Usage
 
-    <div id="chessboard"></div>
-    <script src="chesster.js"></script>
-
-    <script>
-        new Chesster("chessboard");
-    </script>
+See example usage in the `index.html` file. See it live at <http://rhyolight.github.io/chesster/>.
 
 ## Work in Progress
