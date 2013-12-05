@@ -48,6 +48,9 @@
                 output.push(getRelativeCell(cell, x, y));
             }
         }
+        
+        // TODO: calculate castling
+
         output = output.filter(function(item) {
             return item != undefined;
         });
@@ -178,7 +181,7 @@
     }
 
     function unHighlightAll(board) {
-        board.find('td').removeClass('highlight attacked origin');
+        board.find('td.cell').removeClass('highlight attacked origin');
     }
 
     function piecePathToDescription(path) {
@@ -312,8 +315,8 @@
     }
 
     function enableDragDrop(board) {
-        var chessImages = board.find('td img'),
-            cells = board.find('td');
+        var chessImages = board.find('td.cell img'),
+            cells = board.find('td.cell');
         chessImages.draggable();
         cells.droppable({
             drop: function(evt, ui) {
@@ -342,22 +345,22 @@
         var cols = 8;
 
         for (var rowCounter = 0; rowCounter < rows; rowCounter++) {
+            var rowId = rowCounter + (8 - 2 * rowCounter);
             var row = $('<tr>');
-            for (var colCounter = 0; colCounter < cols; colCounter++) {
-                var className = 'even';
-                var rowId = rowCounter + (8 - 2 * rowCounter);
-                var colId = columns[colCounter].toLowerCase();
-                var cellId = colId + rowId;
+            var colCounter, className, colId, cellId;
+            // first cell for rank markers
+            row.append('<td class="marker">' + rowId + '</td>');
+            for (colCounter = 0; colCounter < cols; colCounter++) {
+                className = 'even';
+                colId = columns[colCounter].toLowerCase();
+                cellId = colId + rowId;
                 if ((rowCounter + colCounter) % 2 == 1) {
                     className = 'odd';
                 }
-                var cell = $('<td id="' + cellId + '" class="' + className + '">');
-                if (colCounter == 0) {
-                    cell.prepend('<div class="row-label">' + rowId + '</div>');
-                }
-                if (rowCounter == 7) {
-                    cell.append('<div class="col-label">' + colId + '</div>');
-                }
+                var cell = $('<td id="' + cellId + '" class="cell ' + className + '">');
+                // if (rowCounter == 7) {
+                //     cell.append('<div class="col-label">' + colId + '</div>');
+                // }
                 cell.on('mouseover', function(event) {
                     highlightMoves(event, board);
                 });
@@ -368,6 +371,16 @@
             }
             board.append(row);
         }
+        // append one last row with file markers
+        row = $('<tr>');
+        // initial square is empty for left bottom corner
+        row.append('<td>');
+        for (colCounter = 0; colCounter < cols; colCounter++) {
+            colId = columns[colCounter].toLowerCase();
+            row.append('<td class="marker">' + colId + '</td>');
+        }
+        board.append(row);
+
         boardContainer.append(board);
         return board;
     }

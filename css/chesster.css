@@ -2,7 +2,10 @@
 table.chesster {
     border-spacing: 0;
 }
-table.chesster tr td {
+table.chesster tr td.marker {
+    text-align: center;
+}
+table.chesster tr td.cell {
     border: solid black 2px;
     width: 80px;
     height: 80px;
@@ -20,9 +23,9 @@ table.chesster .row-label {
 table.chesster td.origin {
     opacity: 0.5;
 }
-table.chesster td.highlight {
+table.chesster td.cell.highlight {
     border: solid 2px yellow;
 }
-table.chesster td.attacked {
+table.chesster td.cell.attacked {
     border-color: red;
 }
