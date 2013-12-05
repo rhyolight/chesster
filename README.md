@@ -18,6 +18,7 @@ Want to help?
 - Enforce turns, starting with white
   - Disallow incorrect player to move when it's not their turn
   - Indicate whose move it is
+- Show pieces that have been captured somewhere
 - Keep history of moves in localStorage
 - Continue where last game left on refresh
 - Start a new game button
