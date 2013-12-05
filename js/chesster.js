@@ -133,8 +133,8 @@
         placePiece(board, color, 'rook', 'A' + row);
         placePiece(board, color, 'knight', 'B' + row);
         placePiece(board, color, 'bishop', 'C' + row);
-        placePiece(board, color, 'king', 'D' + row);
-        placePiece(board, color, 'queen', 'E' + row);
+        placePiece(board, color, 'queen', 'D' + row);
+        placePiece(board, color, 'king', 'E' + row);
         placePiece(board, color, 'bishop', 'F' + row);
         placePiece(board, color, 'knight', 'G' + row);
         placePiece(board, color, 'rook', 'H' + row);
