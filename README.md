@@ -12,6 +12,8 @@ Want to help?
 
 ### TODO:
 
+- Update pawn movement to include [en passant](http://en.wikipedia.org/wiki/En_passant)
+- Update king and rook movements for castling (king- and queen-side)
 - Enforce turns, starting with white
   - Disallow incorrect player to move when it's not their turn
   - Indicate whose move it is
