@@ -21,3 +21,7 @@ Want to help?
 - Keep history of moves in localStorage
 - Continue where last game left on refresh
 - Start a new game button
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/rhyolight/chesster/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
